@@ -4,7 +4,7 @@ const util = require('util');
 
 const redisUrl = 'redis://127.0.0.1:6379';
 const client = redis.createClient(redisUrl);
-client.hget = util.promisify(client.hget);
+client.get = util.promisify(client.get);
 const exec = mongoose.Query.prototype.exec;
 
 mongoose.Query.prototype.exec = async function () {
@@ -20,7 +20,11 @@ mongoose.Query.prototype.exec = async function () {
 
   // If we do, return that
   if (cacheValue) {
-    console.log(cacheValue);
+    const doc = JSON.parse(cacheValue);
+
+    return Array.isArray(doc)
+      ? doc.map((d) => new this.model(d))
+      : new this.model(doc);
   }
 
   // Otherwise, issue the query and store the result in redis
