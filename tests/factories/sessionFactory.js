@@ -10,7 +10,7 @@ module.exports = function (user) {
     },
   };
   const session = Buffer.from(JSON.stringify(sessionObject)).toString('base64');
-  const sig = keygrip.sign('session=' + sessionString);
+  const sig = keygrip.sign('session=' + session);
 
   return { session, sig };
 };
