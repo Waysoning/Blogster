@@ -11,10 +11,11 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  await browser.close();
+  // await browser.close();
 });
 
 test('the header has the correct text', async () => {
+  await page.waitFor('a.brand-logo');
   const text = await page.$eval('a.brand-logo', (el) => el.innerHTML);
 
   expect(text).toEqual('Blogster');
@@ -25,4 +26,33 @@ test('clicking login starts oauth flow', async () => {
   const url = await page.url();
 
   expect(url).toMatch(/accounts\.google\.com/);
+});
+
+test('when signed in, shows logout button', async () => {
+  const id = '63736826eaca3e4ed733012e';
+
+  const Buffer = require('safe-buffer').Buffer;
+  const sessionObject = {
+    passport: {
+      user: id,
+    },
+  };
+  const sessionString = Buffer.from(JSON.stringify(sessionObject)).toString(
+    'base64'
+  );
+
+  const Keygrip = require('keygrip');
+  const keys = require('../config/keys');
+  const keygrip = new Keygrip([keys.cookieKey]);
+  const sig = keygrip.sign('session=' + sessionString);
+
+  await page.setCookie({ name: 'session', value: sessionString });
+  await page.setCookie({ name: 'session.sig', value: sig });
+  await page.goto('localhost:3000');
+  // should wait for the page to load
+  await page.waitFor('a[href="/auth/logout"]');
+
+  const text = await page.$eval('a[href="/auth/logout"]', (el) => el.innerHTML);
+
+  expect(text).toEqual('Logout');
 });
