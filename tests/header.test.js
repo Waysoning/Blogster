@@ -1,25 +1,22 @@
-const puppeteer = require('puppeteer');
 const sessionFactory = require('./factories/sessionFactory');
 const userFactory = require('./factories/userFactory');
+const Page = require('./helpers/page');
 
-let browser, page;
+let page;
 
 beforeEach(async () => {
-  browser = await puppeteer.launch({
-    headless: false,
-  });
-  page = await browser.newPage();
-  await page.goto('localhost:3000');
+  page = await Page.build();
+  // Add http:// prefix to avoid timeout error
+  await page.goto('http://localhost:3000');
 });
 
 afterEach(async () => {
-  await browser.close();
+  await page.close();
 });
 
 test('the header has the correct text', async () => {
   await page.waitFor('a.brand-logo');
   const text = await page.$eval('a.brand-logo', (el) => el.innerHTML);
-
   expect(text).toEqual('Blogster');
 });
 
@@ -36,7 +33,7 @@ test('when signed in, shows logout button', async () => {
 
   await page.setCookie({ name: 'session', value: session });
   await page.setCookie({ name: 'session.sig', value: sig });
-  await page.goto('localhost:3000');
+  await page.goto('http://localhost:3000');
   // should wait for the page to load
   await page.waitFor('a[href="/auth/logout"]');
 
