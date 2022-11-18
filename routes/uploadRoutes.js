@@ -8,8 +8,8 @@ const s3 = new AWS.S3({
   secretAccessKey: keys.secretAccessKey,
 });
 
-modeule.exports = (app) => {
-  app.get('/api/upload',requireLogin, (req, res) => {
+module.exports = (app) => {
+  app.get('/api/upload', requireLogin, (req, res) => {
     const key = `${req.user.id}/${uuid()}.jpeg`;
 
     s3.getSignedUrl(
